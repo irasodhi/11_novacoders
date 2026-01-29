@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoHarvest | Sustainable Farming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Boda:wght@700&display=swap');
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            cursor: none;
+            background: linear-gradient(rgba(10, 40, 25, 0.45), rgba(10, 40, 25, 0.5)), 
+                        url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80');
+            background-attachment: fixed;
+            background-size: cover;
+            color: #ffffff;
+        }
+
+        .glass-nav {
+            background: rgba(10, 40, 25, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .challenge-font { font-family: 'Boda', serif; letter-spacing: -0.02em; }
+
+        .cursor-stalker {
+            width: 35px; height: 35px; border: 2px solid #4ade80;
+            border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000;
+        }
+        .cursor-dot {
+            width: 6px; height: 6px; background: #4ade80;
+            border-radius: 50%; position: fixed; pointer-events: none; z-index: 10000;
+        }
+
+        .feature-card { 
+            background: rgba(255, 255, 255, 0.12); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Ensure cards are ready for GSAP but hidden initially */
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div class="cursor-stalker"></div>
+    <div class="cursor-dot"></div>
+
+    <nav class="glass-nav fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <a href="{{ url_for('home') }}" class="nav-logo text-2xl font-bold text-green-400 flex items-center gap-2">
+                <span class="p-2 bg-green-600 rounded-lg text-white">🌿</span>
+                EcoHarvest
+            </a>
+
+            <div class="hidden md:flex gap-8 font-semibold text-gray-200 uppercase text-[10px] tracking-widest items-center">
+
+                <a href="{{ url_for('ai_chat') }}#ai-chatbot" class="nav-item hover:text-green-400">AI Chatbot</a>
+                <a href="{{ url_for('crop') }}#crop-guidance" class="nav-item hover:text-green-400">Crop Guidance</a>
+                <a href="{{ url_for('products') }}" class="nav-item hover:text-green-400">Seed Marketplace</a>
+                <a href="{{ url_for('farmers') }}#farmers" class="nav-item hover:text-green-400">Farmer Details</a>
+                <a href="{{ url_for('about') }}#team-section" class="nav-item text-green-400">About Us</a>
+
+             {% if session.get('user_id') %}
+    <span class="text-green-400 lowercase">{{ session.get('user') }}</span>
+    <a href="{{ url_for('logout') }}" class="nav-item hover:text-red-400">Logout</a>
+{% else %}
+    <a href="{{ url_for('login') }}" class="nav-item hover:text-green-400">Login</a>
+    <a href="{{ url_for('register') }}" class="nav-item hover:text-green-400">Register</a>
+{% endif %}
+
+
+            </div>
+
+            <!-- <a href="{{ url_for('register') }}" class="bg-green-600 text-white px-8 py-2 rounded-full font-bold shadow-lg text-sm hidden md:inline-block hover:bg-green-500">Get Started</a> -->
+        </div>
+    </nav>
+
+    <section id="home" class="pt-48 pb-20 px-6 text-center">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="hero-title text-5xl md:text-8xl font-extrabold text-white mb-6 leading-tight text-shadow">
+                Green Grid for <br><span class="text-green-400 italic">Sustainable Farming</span>
+            </h1>
+            <p class="hero-subtitle text-lg text-gray-100 max-w-2xl mx-auto opacity-0 bg-black/40 p-6 rounded-3xl backdrop-blur-md border border-white/20">
+                A digital green platform connecting farmers, knowledge, and organic resources for eco-friendly farming.
+            </p>
+            <div class="mt-8 flex justify-center gap-4">
+                <a href="{{ url_for('products') }}" class="bg-green-600 px-6 py-3 rounded-full font-bold hover:bg-green-500 transition-all">Explore Marketplace</a>
+                <a href="{{ url_for('register') }}" class="bg-white text-green-600 px-6 py-3 rounded-full font-bold hover:bg-green-100 transition-all">Join Now</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 px-6 bg-black/30">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-4xl font-extrabold text-white uppercase tracking-tighter text-shadow">Platform Features</h2>
+            <div class="h-1.5 w-24 bg-green-500 mx-auto mt-4 rounded-full"></div>
+
+            <div class="grid md:grid-cols-3 gap-8 mt-12">
+                <div id="ai-chatbot" class="feature-card p-10 rounded-[2.5rem] shadow-sm hover:border-green-400 transition-all">
+                    <div class="text-5xl mb-6">🤖</div>
+                    <h3 class="text-2xl font-bold text-green-400 mb-4">AI Chatbot</h3>
+                    <p class="text-gray-100">Get AI-powered plantation guidance and farming practices.</p>
+                </div>
+                <div id="crop-guidance" class="feature-card p-10 rounded-[2.5rem] shadow-sm hover:border-green-400 transition-all">
+                    <div class="text-5xl mb-6">🌱</div>
+                    <h3 class="text-2xl font-bold text-green-400 mb-4">Crop Guidance</h3>
+                    <p class="text-gray-100">Step-by-step instructions for home and terrace farming.</p>
+                </div>
+                <div id="seed-marketplace" class="feature-card p-10 rounded-[2.5rem] shadow-sm hover:border-green-400 transition-all">
+                    <div class="text-5xl mb-6">🤝</div>
+                    <h3 class="text-2xl font-bold text-green-400 mb-4">Seed Network</h3>
+                    <p class="text-gray-100">Connect with verified organic seed sellers.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-24 px-6 text-center">
+        <h3 class="text-2xl font-bold text-green-400 mb-4">NovaCoders</h3>
+        <p class="text-gray-300 text-sm tracking-widest uppercase mb-4">© 2026 EcoHarvest - Sustainable Digital Future </p>
+        <div class="h-1 w-12 bg-green-500 mx-auto rounded-full"></div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. Mouse Follower Logic
+        const stalker = document.querySelector('.cursor-stalker');
+        const dot = document.querySelector('.cursor-dot');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(stalker, { x: e.clientX - 17, y: e.clientY - 17, duration: 0.3 });
+            gsap.to(dot, { x: e.clientX - 3, y: e.clientY - 3, duration: 0.1 });
+        });
+
+        // 2. Hover Interactions
+        document.querySelectorAll('a, button, .feature-card').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                gsap.to(stalker, { scale: 2.2, backgroundColor: 'rgba(74, 222, 128, 0.2)', borderColor: 'transparent', duration: 0.3 });
+                gsap.to(dot, { scale: 1.5, background: '#4ade80', duration: 0.3 });
+            });
+            el.addEventListener('mouseleave', () => {
+                gsap.to(stalker, { scale: 1, backgroundColor: 'transparent', borderColor: '#4ade80', duration: 0.3 });
+                gsap.to(dot, { scale: 1, background: '#4ade80', duration: 0.3 });
+            });
+        });
+
+        // 3. Hero Entrance Timeline
+        const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+        tl.from(".nav-logo, .nav-item", { y: -30, opacity: 0, stagger: 0.1, duration: 0.8 })
+          .from(".hero-title", { y: 60, opacity: 0, duration: 1 }, "-=0.4")
+          .to(".hero-subtitle", { opacity: 1, y: 0, duration: 0.8 }, "-=0.6");
+
+        // 4. Feature Cards Visibility Fix
+        // Use fromTo to ensure the animation overrides any initial CSS hidden state
+        gsap.fromTo(".feature-card", 
+            { 
+                y: 60, 
+                opacity: 0 
+            },
+            {
+                scrollTrigger: {
+                    trigger: ".feature-card",
+                    start: "top 85%", // Triggers when the top of the cards reach 85% of screen height
+                    toggleActions: "play none none none"
+                },
+                y: 0, 
+                opacity: 1, 
+                stagger: 0.2, 
+                duration: 1,
+                ease: "power2.out"
+            }
+        );
+    </script>
+</body>
+</html>

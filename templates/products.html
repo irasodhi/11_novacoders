@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoHarvest | Products</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(rgba(10, 40, 25, 0.45), rgba(10, 40, 25, 0.5)), 
+                        url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80');
+            background-attachment: fixed;
+            background-size: cover;
+            color: #fff;
+        }
+
+        .glass-card {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(74, 222, 128, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8">
+
+    <!-- NAVBAR -->
+    <!-- ===== NAVBAR ===== -->
+    <nav class="glass-nav fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <!-- LOGO -->
+            <a href="{{ url_for('home') }}" class="nav-logo text-2xl font-bold text-green-400 flex items-center gap-2">
+                <span class="p-2 bg-green-600 rounded-lg text-white">🌿</span>
+                EcoHarvest
+            </a>
+
+            <!-- NAV LINKS -->
+            <div class="hidden md:flex gap-8 font-semibold text-gray-200 uppercase text-[10px] tracking-widest items-center">
+
+                <a href="{{ url_for('ai_chat') }}#ai-chatbot" class="nav-item hover:text-green-400">AI Chatbot</a>
+                <a href="{{ url_for('crop') }}#crop-guidance" class="nav-item hover:text-green-400">Crop Guidance</a>
+                <a href="{{ url_for('products') }}" class="nav-item hover:text-green-400">Seed Marketplace</a>
+                <a href="{{ url_for('farmers') }}#farmers" class="nav-item hover:text-green-400">Farmer Details</a>
+                <a href="{{ url_for('about') }}#about" class="nav-item hover:text-green-400">About Us</a>
+
+                <!-- AUTH LOGIC -->
+                {% if session.get('user_id') %}
+                    <span class="text-green-400 lowercase">{{ session.get('user') }}</span>
+                    <a href="{{ url_for('logout') }}" class="nav-item hover:text-red-400">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-item hover:text-green-400">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-item hover:text-green-400">Register</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <div class="max-w-6xl mx-auto mt-28 mb-8 flex justify-between items-center">
+        <h1 class="text-4xl font-bold text-green-400">🌱 EcoHarvest Marketplace</h1>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="max-w-6xl mx-auto mb-6">
+                {% for category, message in messages %}
+                    <li class="text-sm text-center {% if category == 'error' %}text-red-400{% else %}text-green-400{% endif %}">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <!-- PRODUCTS GRID -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in products %}
+        <div class="glass-card p-6 rounded-2xl flex flex-col items-center shadow-lg">
+
+            <img src="{{ url_for('static', filename='uploads/' ~ product[3]) }}" 
+                 alt="{{ product[1] }}" class="w-40 h-40 object-cover rounded-xl mb-4">
+
+            <h2 class="text-xl font-semibold mb-2">{{ product[1] }}</h2>
+            <p class="text-green-300 font-bold mb-4">₹{{ product[2] }}</p>
+
+         {% if not session.get('user_id') %}
+    <p class="text-gray-300">Login to buy</p>
+{% elif product[0] not in pending_orders %}
+    <form action="/order/{{ product[0] }}" method="post">
+        <button type="submit"
+            class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-full transition-all">
+            Buy
+        </button>
+    </form>
+{% else %}
+    <p class="text-yellow-300 font-semibold">⏳ Pending</p>
+{% endif %}
+
+
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

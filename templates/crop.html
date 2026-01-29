@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoHarvest | AI Crop Intelligence</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Boda:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <style>
+        :root {
+            --primary: #4ade80;
+            --primary-light: rgba(74, 222, 128, 0.15);
+            --primary-dark: #0a5c2a;
+            --bg-dark: #0a2819;
+            --bg-gradient: linear-gradient(135deg, #0a2819 0%, #052010 100%);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-light: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-white: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            cursor: none;
+            box-sizing: border-box;
+        }
+
+     body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            cursor: none;
+            background: linear-gradient(rgba(10, 40, 25, 0.45), rgba(10, 40, 25, 0.5)), 
+                        url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80');
+            background-attachment: fixed;
+            background-size: cover;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Custom Cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            background: rgba(74, 222, 128, 0.1);
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5), 
+                       inset 0 0 10px rgba(74, 222, 128, 0.3);
+            transition: width 0.1s ease, height 0.1s ease, transform 0.3s ease;
+        }
+
+        .custom-cursor.active {
+            width: 50px;
+            height: 50px;
+            border-width: 3px;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.8), 
+                       inset 0 0 15px rgba(74, 222, 128, 0.5);
+        }
+
+        .cursor-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: screen;
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        /* Typography */
+        .challenge-font { 
+            font-family: 'Boda', serif; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+        
+        .hidden { 
+            display: none !important; 
+        }
+        
+        .highlight {
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+        }
+
+        /* Navigation */
+        .glass-nav {
+            position: fixed; 
+            top: 0; 
+            width: 100%;
+            background: rgba(10, 40, 25, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000; 
+            padding: 1rem 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 0 2rem; 
+        }
+        
+        .nav-logo { 
+            color: var(--primary); 
+            text-decoration: none; 
+            font-weight: 800; 
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo-icon {
+            font-size: 1.8rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 2rem 2rem;
+        }
+
+        /* Simple Input Form */
+        .simple-form {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .simple-form h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .simple-form p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .input-field {
+            flex: 1;
+            position: relative;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+        }
+
+        .quick-crops {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .crop-chip {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-white);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .crop-chip:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .crop-chip.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+      /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #22c55e);
+            color: #051a0f;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(74, 222, 128, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Reset Button */
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(74, 222, 128, 0.15);
+        }
+
+        .result-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-white);
+            margin: 0.5rem 0;
+        }
+
+        .result-card .label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-good { background: #4ade80; }
+        .status-warning { background: #fbbf24; }
+        .status-bad { background: #ef4444; }
+
+        /* Weather Card */
+        .weather-card {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.1), rgba(74, 222, 128, 0.05));
+        }
+
+        .weather-item {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Soil Compatibility */
+        .compatibility-meter {
+            margin-top: 1rem;
+        }
+
+        .soil-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .soil-name {
+            width: 80px;
+            font-size: 0.9rem;
+        }
+
+        .soil-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .soil-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .soil-score {
+            width: 40px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        /* Organic Requirements */
+        .requirements-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .requirement-tag {
+            background: linear-gradient(135deg, #166534, #0f5e2b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        /* Growth Timeline */
+        .timeline {
+            margin-top: 1rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .timeline-step {
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--bg-dark);
+            margin-right: 1rem;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            margin: 0 0 0.3rem 0;
+            color: var(--text-white);
+        }
+
+        .timeline-content p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Alerts Section */
+        .alerts-container {
+            margin-top: 2rem;
+        }
+
+        .alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .alert.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .alert.success {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .alert-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: #ef4444;
+        }
+
+        .alert.warning .alert-content h4 {
+            color: #fbbf24;
+        }
+
+        .alert.success .alert-content h4 {
+            color: #4ade80;
+        }
+
+        .alert-content p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .weather-card {
+                grid-column: span 1;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .simple-form h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            animation: slideInUp 0.3s ease;
+            max-width: 350px;
+        }
+
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+
+        .notification.success {
+            border-left-color: #4ade80;
+        }
+
+        .notification.warning {
+            border-left-color: #fbbf24;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Analysis Status */
+        .analysis-status {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Crop Image */
+        .crop-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .crop-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .crop-image:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-source {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* API Status */
+        .api-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .api-status-dot.online {
+            background: #4ade80;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+
+        .api-status-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Autocomplete */
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(10, 40, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-name {
+            font-weight: 600;
+            color: var(--text-white);
+            display: block;
+        }
+
+        .suggestion-scientific {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .suggestion-type {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(74, 222, 128, 0.2);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+
+        /* Loading State */
+        .api-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-subtext {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Data Source Badge */
+        .data-source {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(74, 222, 128, 0.1);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        /* Alternative APIs Info */
+        .api-alternatives {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+        }
+
+        .api-alternatives h4 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+
+        /* Action Buttons Container */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+    <div class="cursor-dot"></div>
+<!-- API Status Indicator -->
+    <div class="api-status">
+        <span class="api-status-dot" id="apiStatusDot"></span>
+        <span id="apiStatusText">Checking API...</span>
+    </div>
+        <nav class="glass-nav fixed w-full z-5 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+              <!-- LOGO -->
+            <a href="{{ url_for('home') }}" class="nav-logo text-2xl font-bold text-green-400 flex items-center gap-2">
+                <span class="p-2 bg-green-600 rounded-lg text-white">🌿</span>
+                EcoHarvest
+            </a>
+            <div class=" md:flex gap-8 font-semibold text-gray-200 uppercase text-[10px] tracking-widest items-center">
+
+            <a href="{{ url_for('ai_chat') }}#ai-chatbot" class="nav-item hover:text-green-400">AI Chatbot</a>
+            <a href="{{ url_for('crop') }}#crop-guidance" class="nav-item hover:text-green-400">Crop Guidance</a>
+            <a href="{{ url_for('products') }}" class="nav-item hover:text-green-400">Seed Marketplace</a>
+            <a href="{{ url_for('farmers') }}#farmers" class="nav-item hover:text-green-400">Farmer Details</a>
+            <a href="{{ url_for('about') }}#about" class="nav-item hover:text-green-400">About Us</a>
+
+            <!-- AUTH LOGIC -->
+            {% if session.get('user_id') %}
+                <span class="text-green-400 lowercase">{{ session.get('user') }}</span>
+                <a href="{{ url_for('logout') }}" class="nav-item hover:text-red-400">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="nav-item hover:text-green-400">Login</a>
+                <a href="{{ url_for('register') }}" class="nav-item hover:text-green-400">Register</a>
+            {% endif %}
+
+        </div>
+
+            
+        </div>
+    </nav>
+
+    <<main class="main-container">
+        <!-- Simple Input Section -->
+        <section id="inputSection" class="simple-form">
+            <h1 class="challenge-font text-5xl md:text-7xl mb-6 opacity-0 translate-y-10" id="mainHeading">
+                Universal Crop Intelligence
+            </h1>
+            <p>Enter ANY crop or plant name. Get AI-powered analysis, real-time weather insights, and organic farming guidance for optimal cultivation.</p>
+            
+            <div class="input-group">
+                <div class="input-field">
+                    <input type="text" id="cropInput" placeholder="Enter any crop (e.g., Strawberry, Lavender, Quinoa, Mango)" autocomplete="off">
+                    <div class="autocomplete-suggestions" id="cropSuggestions"></div>
+                </div>
+                <div class="input-field">
+                    <input type="text" id="locationInput" placeholder="Your location (city)">
+                </div>
+                <button class="btn-primary" id="analyzeBtn" onclick="analyzeCrop()">
+                    Analyze Crop
+                </button>
+            </div>
+
+            <div class="quick-crops">
+                <div class="crop-chip" onclick="selectQuickCrop('Tomato')">🍅 Tomato</div>
+                <div class="crop-chip" onclick="selectQuickCrop('Strawberry')">🍓 Strawberry</div>
+                <div class="crop-chip" onclick="selectQuickCrop('Lavender')">💜 Lavender</div>
+                <div class="crop-chip" onclick="selectQuickCrop('Basil')">🌿 Basil</div>
+                <div class="crop-chip" onclick="selectQuickCrop('Mango')">🥭 Mango</div>
+                <div class="crop-chip" onclick="selectQuickCrop('Quinoa')">🌾 Quinoa</div>
+            </div>
+
+            <div class="api-alternatives">
+                <h4>🌐 Powered by Multiple Data Sources</h4>
+                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: var(--text-muted);">
+                    Using agricultural databases, AI analysis, and real-time weather data to provide comprehensive crop intelligence.
+                </p>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="hidden">
+            <!-- Loading State -->
+            <div id="loadingSection" class="api-loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Analyzing Crop Data</div>
+                <div class="loading-subtext">Fetching information from multiple sources...</div>
+            </div>
+
+            <!-- Results Content -->
+            <div id="resultsContent" class="hidden">
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="resetAnalysis()">
+                        🔄 Reset Analysis
+                    </button>
+                    <button class="btn-secondary" onclick="printAnalysis()">
+                        🖨️ Print Report
+                    </button>
+                </div>
+
+                <div class="simple-form">
+                    <h1 class="challenge-font" id="resultTitle">Crop Analysis</h1>
+                    <p id="resultSubtitle">AI-powered analysis for optimal cultivation</p>
+                </div>
+
+                <!-- Data Source Indicator -->
+                <div id="dataSourceIndicator" style="text-align: center; margin-bottom: 1rem;">
+                    <span class="data-source" id="dataSourceBadge">🌐 AI Analysis</span>
+                </div>
+
+                <!-- Crop Image & Basic Info -->
+                <div class="result-card">
+                    <div class="crop-image">
+                        <img id="cropImage" src="" alt="Crop Image" onerror="handleImageError(this)">
+                        <div class="image-source" id="imageSource">Image Source</div>
+                    </div>
+                    <h3 id="cropNameDisplay">Crop Name</h3>
+                    <p id="cropScientificName" style="color: var(--primary); font-size: 0.9rem; margin-top: -0.5rem; margin-bottom: 0.5rem;"></p>
+                    <p id="cropDescription" style="color: var(--text-muted); margin-bottom: 1rem;"></p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <div class="label">Season</div>
+                            <div class="value" id="seasonDisplay">--</div>
+                        </div>
+                        <div>
+                            <div class="label">Growth Period</div>
+                            <div class="value" id="growthPeriodDisplay">-- days</div>
+                        </div>
+                        <div>
+                            <div class="label">Difficulty</div>
+                            <div class="value" id="difficultyDisplay">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Weather -->
+                <div class="result-card weather-card">
+                    <div class="weather-item">
+                        <div class="weather-icon">🌡️</div>
+                        <div class="label">Current Temperature</div>
+                        <div class="value" id="currentTemp">--°C</div>
+                    </div>
+                    <div class="weather-item">
+                        <div class="weather-icon">💧</div>
+                        <div class="label">Humidity</div>
+                        <div class="value" id="humidity">--%</div>
+                    </div>
+                    <div class="weather-item">
+                        <div class="weather-icon">🌧️</div>
+                        <div class="label">Rainfall</div>
+                        <div class="value" id="rainfall">-- mm</div>
+                    </div>
+                    <div class="weather-item">
+                        <div class="weather-icon">🌤️</div>
+                        <div class="label">Condition</div>
+                        <div class="value" id="weatherCondition">--</div>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <!-- Ideal Conditions -->
+                    <div class="result-card">
+                        <h3>🌱 Ideal Conditions</h3>
+                        <div class="label">Temperature Range</div>
+                        <div class="value" id="idealTemp">--°C</div>
+                        <div class="label">Water Requirements</div>
+                        <div class="value" id="waterReq">--</div>
+                        <div class="label">Sun Exposure</div>
+                        <div class="value" id="sunExposure">--</div>
+                    </div>
+
+                    <!-- Soil Requirements -->
+                    <div class="result-card">
+                        <h3>🌍 Soil Requirements</h3>
+                        <div class="label">Best Soil Type</div>
+                        <div class="value" id="bestSoil">--</div>
+                        <div class="label">pH Range</div>
+                        <div class="value" id="phRange">--</div>
+                        <div class="label">Soil Fertility</div>
+                        <div class="value" id="soilFertility">--</div>
+                    </div>
+
+                    <!-- Yield Prediction -->
+                    <div class="result-card">
+                        <h3>📈 Yield Prediction</h3>
+                        <div class="label">Expected Yield</div>
+                        <div class="value" id="expectedYield">-- tons/acre</div>
+                        <div class="label">Harvest Time</div>
+                        <div class="value" id="harvestTime">-- months</div>
+                        <div class="label">Market Value</div>
+                        <div class="value" id="marketValue">--</div>
+                    </div>
+
+                    <!-- Organic Requirements -->
+                    <div class="result-card">
+                        <h3>♻️ Organic Requirements</h3>
+                        <div id="organicRequirements" class="requirements-list"></div>
+                    </div>
+
+                    <!-- Growth Timeline -->
+                    <div class="result-card">
+                        <h3>📅 Growth Timeline</h3>
+                        <div id="growthTimeline" class="timeline"></div>
+                    </div>
+
+                    <!-- Pest & Disease Management -->
+                    <div class="result-card">
+                        <h3>🐛 Pest & Disease Management</h3>
+                        <div id="pestInfo"></div>
+                    </div>
+                </div>
+
+                <!-- Alerts & Recommendations -->
+                <div class="alerts-container">
+                    <h3 class="challenge-font" style="color: var(--primary); margin-bottom: 1rem;">⚠️ AI Recommendations</h3>
+                    <div id="alertsContainer"></div>
+                </div>
+
+                <!-- Alternative Crops -->
+                <div class="result-card">
+                    <h3>🌱 Similar & Alternative Crops</h3>
+                    <div id="alternativeCrops" class="requirements-list"></div>
+                </div>
+
+                <!-- Action Buttons at Bottom -->
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="resetAnalysis()">
+                        🔄 Reset Analysis
+                    </button>
+                    <button class="btn-secondary" onclick="printAnalysis()">
+                        🖨️ Print Report
+                    </button>
+                    <button class="btn-secondary" onclick="shareAnalysis()">
+                        📤 Share Analysis
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Enhanced Crop Database with detailed data for common crops
+        const cropDatabase = {
+            Wheat: {
+                name: "Wheat",
+                idealTemp: "15-24°C",
+                waterReq: "Low-Medium (500-700mm)",
+                season: "Rabi (Winter)",
+                bestSoil: "Loamy, Clay Loam",
+                phRange: "6.0-7.5",
+                yield: "3.5-4.5 tons/acre",
+                growthPeriod: "120-150 days",
+                marketValue: "High domestic demand",
+                description: "Essential staple grain for cool seasons. High protein content with excellent market value and storage capability.",
+                image: "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Crop Rotation", "Green Manure", "Bio-Fertilizers", "Organic Mulch", "Neem-based Pest Control"],
+                growthStages: [
+                    { step: 1, name: "Land Preparation", desc: "Deep ploughing with organic compost in Oct-Nov" },
+                    { step: 2, name: "Sowing", desc: "November-December, 20-25 kg/acre seed rate with organic treatment" },
+                    { step: 3, name: "Vegetative", desc: "Apply Jeevamrut liquid manure at 30 days growth" },
+                    { step: 4, name: "Flowering", desc: "Monitor for aphids and armyworms, use neem oil" },
+                    { step: 5, name: "Harvest", desc: "April-May when grains harden, sun-dry for 10-15 days" }
+                ],
+                pests: ["Aphids", "Armyworms", "Rust"],
+                diseases: ["Powdery Mildew", "Leaf Blight"]
+            },
+            Rice: {
+                name: "Rice",
+                idealTemp: "22-32°C",
+                waterReq: "High (1200-2000mm)",
+                season: "Kharif (Monsoon)",
+                bestSoil: "Clay, Clay Loam",
+                phRange: "5.0-6.5",
+                yield: "5.0-6.5 tons/acre",
+                growthPeriod: "150-180 days",
+                marketValue: "Stable government procurement",
+                description: "Primary tropical grain for wetlands. Requires consistent moisture and warm climate with good water management.",
+                image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["SRI Method", "Azolla Cultivation", "Duck Farming", "Organic Slurry", "Natural Predators"],
+                growthStages: [
+                    { step: 1, name: "Nursery", desc: "Prepare raised bed nursery in June with organic manure" },
+                    { step: 2, name: "Transplanting", desc: "25x25cm spacing for SRI method, 15-20 days old seedlings" },
+                    { step: 3, name: "Tillering", desc: "Apply decomposed oil cakes and maintain shallow water" },
+                    { step: 4, name: "Flowering", desc: "Critical stage - ensure proper drainage and aeration" },
+                    { step: 5, name: "Harvest", desc: "When 80% grains turn golden brown, thresh immediately" }
+                ],
+                pests: ["Stem Borer", "Leaf Folder", "Brown Plant Hopper"],
+                diseases: ["Blast", "Sheath Blight"]
+            },
+            Maize: {
+                name: "Maize",
+                idealTemp: "21-27°C",
+                waterReq: "Medium-High (600-900mm)",
+                season: "Kharif, Rabi",
+                bestSoil: "Loamy, Well-drained",
+                phRange: "5.8-7.0",
+                yield: "6.0-8.0 tons/acre",
+                growthPeriod: "90-120 days",
+                marketValue: "High for poultry feed and industrial use",
+                description: "Versatile cereal crop with multiple uses. Good market demand and nutrition value for both human and animal consumption.",
+                image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Intercropping with legumes", "Bio-Fertilizers", "Drip Irrigation", "Mulching", "Integrated Pest Management"],
+                growthStages: [
+                    { step: 1, name: "Land Preparation", desc: "Deep plough with 5-10 tons FYM per acre" },
+                    { step: 2, name: "Sowing", desc: "30x10cm spacing, 8-10 kg seeds per acre" },
+                    { step: 3, name: "Knee-high", desc: "Foliar spray with Panchagavya at 30 days" },
+                    { step: 4, name: "Tasseling", desc: "Critical water requirement stage" },
+                    { step: 5, name: "Harvest", desc: "When husks dry and grains harden" }
+                ],
+                pests: ["Stem Borer", "Aphids", "Armyworm"],
+                diseases: ["Turcicum Leaf Blight", "Downy Mildew"]
+            },
+            Tomato: {
+                name: "Tomato",
+                idealTemp: "21-27°C",
+                waterReq: "Moderate-High (Regular irrigation)",
+                season: "Year-round (protected cultivation)",
+                bestSoil: "Loamy, Sandy Loam",
+                phRange: "6.0-7.0",
+                yield: "15-25 tons/acre",
+                growthPeriod: "90-120 days",
+                marketValue: "High market demand with good returns",
+                description: "High-value vegetable crop with strong market demand. Requires good management for quality production and pest control.",
+                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Companion Planting", "Drip Irrigation", "Natural Predators", "Staking", "Vermicompost"],
+                growthStages: [
+                    { step: 1, name: "Nursery", desc: "Raised bed with coco-peat, 5-7 days germination" },
+                    { step: 2, name: "Transplant", desc: "Add 5 tons compost per acre, 60x45cm spacing" },
+                    { step: 3, name: "Flowering", desc: "Weekly seaweed extract spray for fruit set" },
+                    { step: 4, name: "Fruiting", desc: "Regular harvesting every 3-4 days" },
+                    { step: 5, name: "Final Harvest", desc: "Complete before frost season" }
+                ],
+                pests: ["Fruit Borer", "Whitefly", "Aphids"],
+                diseases: ["Early Blight", "Bacterial Wilt"]
+            },
+            Potato: {
+                name: "Potato",
+                idealTemp: "15-20°C",
+                waterReq: "Moderate (Regular but careful)",
+                season: "Rabi, Early Summer",
+                bestSoil: "Sandy Loam, Loamy",
+                phRange: "5.0-6.5",
+                yield: "20-30 tons/acre",
+                growthPeriod: "90-120 days",
+                marketValue: "High processing demand and domestic consumption",
+                description: "Important tuber crop with high caloric content. Versatile for various cuisines and processing industries.",
+                image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Seed Treatment", "Ridge Planting", "Earthing-up", "Neem Pest Control", "Vermicompost"],
+                growthStages: [
+                    { step: 1, name: "Seed Preparation", desc: "Cut certified organic seed potatoes with 2-3 eyes" },
+                    { step: 2, name: "Planting", desc: "50cm row spacing, 5cm depth" },
+                    { step: 3, name: "Earthing Up", desc: "First at 30 days, second at 45 days after planting" },
+                    { step: 4, name: "Tuberization", desc: "Seaweed liquid manure application at 60 days" },
+                    { step: 5, name: "Harvest", desc: "90-120 days after planting, careful digging" }
+                ],
+                pests: ["Potato Tuber Moth", "Aphids", "Colorado Beetle"],
+                diseases: ["Late Blight", "Common Scab"]
+            },
+            Coriander: {
+                name: "Coriander",
+                scientificName: "Coriandrum sativum",
+                description: "Coriander is a fast-growing annual herb used for its fresh leaves (cilantro) and seeds. Both parts are widely used in culinary applications worldwide.",
+                idealTemp: "18-27°C",
+                waterReq: "Medium (Regular watering)",
+                sunExposure: "Full sun to partial shade",
+                season: "Cool season (Fall to Spring)",
+                bestSoil: "Well-drained, fertile loamy soil",
+                phRange: "6.2-6.8",
+                soilFertility: "Medium to high",
+                growthPeriod: "45-70 days for leaves, 100-120 days for seeds",
+                yield: "800-1200 kg/acre of fresh leaves",
+                harvestTime: "30-45 days for leaves, 90-100 days for seeds",
+                marketValue: "High demand in fresh markets and food industry",
+                difficulty: "Easy",
+                image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Organic compost", "Crop rotation with legumes", "Neem-based pest control", "Companion planting with beans", "Mulching"],
+                growthStages: [
+                    { step: 1, name: "Soil Preparation", desc: "Prepare well-drained soil with organic compost (2-3 tons/acre)" },
+                    { step: 2, name: "Sowing", desc: "Sow seeds 1 cm deep, 15-20 cm apart in rows 30 cm apart" },
+                    { step: 3, name: "Germination", desc: "Seeds sprout in 7-14 days with adequate moisture" },
+                    { step: 4, name: "Leaf Growth", desc: "Harvest leaves 30-45 days after sowing for fresh cilantro" },
+                    { step: 5, name: "Flowering", desc: "Plants bolt and flower in warm weather (avoid for leaf production)" },
+                    { step: 6, name: "Seed Formation", desc: "Seeds develop 90-100 days after sowing" },
+                    { step: 7, name: "Harvest", desc: "Harvest seeds when they turn brown and aromatic" }
+                ],
+                pests: ["Aphids", "Whiteflies", "Leaf miners", "Caterpillars"],
+                diseases: ["Powdery mildew", "Leaf spot", "Damping off"]
+            },
+            Strawberry: {
+                name: "Strawberry",
+                scientificName: "Fragaria × ananassa",
+                description: "Strawberry is a perennial fruit crop known for its sweet, aromatic berries. Grows well in temperate and subtropical regions.",
+                idealTemp: "15-25°C",
+                waterReq: "High (Regular irrigation, especially during fruiting)",
+                sunExposure: "Full sun",
+                season: "Cool season",
+                bestSoil: "Well-drained sandy loam",
+                phRange: "5.5-6.5",
+                soilFertility: "High",
+                growthPeriod: "Perennial (produces in 4-6 months)",
+                yield: "10-15 tons/acre",
+                harvestTime: "4-6 weeks after flowering",
+                marketValue: "Very high, premium fresh fruit",
+                difficulty: "Medium",
+                image: "https://images.unsplash.com/photo-1465634836201-1d5651b9b6d4?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Mulching with straw", "Runner management", "Organic fertilizers", "Bird netting"],
+                growthStages: [
+                    { step: 1, name: "Planting", desc: "Plant bare-root runners or transplants in early spring" },
+                    { step: 2, name: "Establishment", desc: "Plants establish roots and produce leaves" },
+                    { step: 3, name: "Runner Production", desc: "Plants send out runners for propagation" },
+                    { step: 4, name: "Flowering", desc: "White flowers appear in spring" },
+                    { step: 5, name: "Fruit Development", desc: "Berries develop from pollinated flowers" },
+                    { step: 6, name: "Ripening", desc: "Berries turn from green to white to red" },
+                    { step: 7, name: "Harvest", desc: "Pick berries when fully red" }
+                ],
+                pests: ["Slugs", "Birds", "Spider mites", "Aphids"],
+                diseases: ["Gray mold", "Powdery mildew", "Verticillium wilt"]
+            },
+            Lavender: {
+                name: "Lavender",
+                scientificName: "Lavandula angustifolia",
+                description: "Lavender is a fragrant perennial herb grown for its essential oils, decorative flowers, and culinary uses.",
+                idealTemp: "15-25°C",
+                waterReq: "Low (Drought tolerant once established)",
+                sunExposure: "Full sun",
+                season: "Perennial",
+                bestSoil: "Well-drained, alkaline, sandy soil",
+                phRange: "6.7-7.3",
+                soilFertility: "Low to medium",
+                growthPeriod: "Perennial (flowers in 1-2 years)",
+                yield: "500-800 kg/acre of dried flowers",
+                harvestTime: "When flowers are in bud stage",
+                marketValue: "High for essential oils and dried flowers",
+                difficulty: "Easy",
+                image: "https://images.unsplash.com/photo-1520854221256-17463ccb8b9d?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Minimal watering", "Pruning after flowering", "Well-drained soil", "No heavy fertilizers"],
+                growthStages: [
+                    { step: 1, name: "Planting", desc: "Plant in well-drained soil with full sun" },
+                    { step: 2, name: "Establishment", desc: "First year focuses on root development" },
+                    { step: 3, name: "Vegetative Growth", desc: "Silver-green foliage develops" },
+                    { step: 4, name: "Flowering", desc: "Spikes of purple flowers appear in summer" },
+                    { step: 5, name: "Harvest", desc: "Cut flower spikes when buds are colored but not fully open" },
+                    { step: 6, name: "Drying", desc: "Hang bundles upside down in dark, dry place" }
+                ],
+                pests: ["Few pests (deer resistant)"],
+                diseases: ["Root rot (if overwatered)"]
+            },
+            Basil: {
+                name: "Basil",
+                scientificName: "Ocimum basilicum",
+                description: "Basil is a popular culinary herb with aromatic leaves used in various cuisines, particularly Italian and Southeast Asian.",
+                idealTemp: "20-30°C",
+                waterReq: "Medium (Keep soil consistently moist)",
+                sunExposure: "Full sun",
+                season: "Warm season",
+                bestSoil: "Rich, well-drained soil",
+                phRange: "6.0-7.5",
+                soilFertility: "Medium to high",
+                growthPeriod: "60-90 days",
+                yield: "2-3 tons/acre of fresh leaves",
+                harvestTime: "30-60 days after planting",
+                marketValue: "High for fresh and dried leaves",
+                difficulty: "Easy to Medium",
+                image: "https://images.unsplash.com/photo-1586769852044-692eb57e5d11?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Regular pinching", "Mulching", "Companion planting", "Organic fertilizer"],
+                growthStages: [
+                    { step: 1, name: "Sowing", desc: "Sow seeds 0.5 cm deep after last frost" },
+                    { step: 2, name: "Germination", desc: "Seeds sprout in 5-10 days in warm soil" },
+                    { step: 3, name: "Seedling", desc: "Thin to 25-30 cm apart when 10 cm tall" },
+                    { step: 4, name: "Vegetative Growth", desc: "Pinch tips to encourage bushy growth" },
+                    { step: 5, name: "Flowering", desc: "Remove flowers to prolong leaf production" },
+                    { step: 6, name: "Harvest", desc: "Harvest leaves regularly from the top" }
+                ],
+                pests: ["Aphids", "Japanese beetles", "Slugs"],
+                diseases: ["Fusarium wilt", "Downy mildew", "Leaf spot"]
+            },
+            Mango: {
+                name: "Mango",
+                scientificName: "Mangifera indica",
+                description: "Mango is a tropical fruit tree known as the 'king of fruits'. It's highly valued for its sweet, juicy fruits.",
+                idealTemp: "24-30°C",
+                waterReq: "Medium-High (1000-1500mm annually)",
+                sunExposure: "Full sun",
+                season: "Summer",
+                bestSoil: "Deep, well-drained loamy soil",
+                phRange: "5.5-7.5",
+                soilFertility: "High",
+                growthPeriod: "Perennial (3-5 years to fruit)",
+                yield: "8-10 tons/acre",
+                harvestTime: "Summer months",
+                marketValue: "Very high, both domestic and export",
+                difficulty: "Medium",
+                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80",
+                imageSource: "Unsplash",
+                organicRequirements: ["Regular pruning", "Organic manure", "Mulching", "Companion planting"],
+                growthStages: [
+                    { step: 1, name: "Planting", desc: "Plant grafted saplings in prepared pits" },
+                    { step: 2, name: "Establishment", desc: "First 2-3 years for root and shoot development" },
+                    { step: 3, name: "Flowering", desc: "Flowers appear in winter/spring" },
+                    { step: 4, name: "Fruit Set", desc: "Fruits develop after pollination" },
+                    { step: 5, name: "Fruit Growth", desc: "Fruits mature over 3-5 months" },
+                    { step: 6, name: "Harvest", desc: "Harvest when fruits develop characteristic color" }
+                ],
+                pests: ["Mango hoppers", "Fruit flies", "Mealybugs"],
+                diseases: ["Anthracnose", "Powdery mildew", "Bacterial canker"]
+            }
+        };
+
+        // Weather Condition Icons
+        const weatherIcons = {
+            'Clear': '☀️', 'Clouds': '☁️', 'Rain': '🌧️', 'Drizzle': '🌦️',
+            'Thunderstorm': '⛈️', 'Snow': '❄️', 'Mist': '🌫️', 'Fog': '🌁',
+            'Haze': '😶‍🌫️'
+        };
+// Plant Categories Database
+        const PLANT_CATEGORIES = {
+            'Vegetable': ['tomato', 'potato', 'carrot', 'lettuce', 'cabbage', 'onion', 'garlic', 'broccoli', 
+                         'spinach', 'cucumber', 'eggplant', 'zucchini', 'pumpkin', 'radish', 'beetroot',
+                         'cauliflower', 'brussels', 'asparagus', 'artichoke', 'okra', 'pepper', 'chili'],
+            
+            'Fruit': ['apple', 'banana', 'orange', 'grape', 'strawberry', 'mango', 'watermelon', 'pineapple',
+                     'papaya', 'pomegranate', 'guava', 'lychee', 'dragonfruit', 'kiwi', 'blueberry',
+                     'raspberry', 'blackberry', 'cherry', 'peach', 'plum', 'apricot', 'fig', 'date'],
+            
+            'Grain': ['wheat', 'rice', 'maize', 'barley', 'oats', 'quinoa', 'millet', 'sorghum',
+                     'buckwheat', 'rye', 'fonio', 'teff', 'amaranth'],
+            
+            'Herb': ['basil', 'mint', 'rosemary', 'thyme', 'oregano', 'cilantro', 'parsley', 'dill',
+                    'chives', 'sage', 'lavender', 'lemongrass', 'stevia', 'tarragon', 'marjoram'],
+            
+            'Flower': ['rose', 'lavender', 'marigold', 'sunflower', 'tulip', 'orchid', 'lily', 'jasmine',
+                      'hibiscus', 'daisy', 'carnation', 'chrysanthemum', 'poppy', 'zinnia', 'dahlia']
+        };
+
+        // Global state
+        let currentAnalysis = null;
+
+        // Update API Status
+        function updateApiStatus(status) {
+            const statusDot = document.getElementById('apiStatusDot');
+            const statusText = document.getElementById('apiStatusText');
+            
+            const statusLabels = {
+                'online': '✅ Online',
+                'offline': '⚠️ Offline',
+                'ai': '🤖 AI Mode'
+            };
+            
+            statusDot.className = `api-status-dot ${status}`;
+            statusText.textContent = statusLabels[status] || '🌐 Checking...';
+        }
+
+        // Select Quick Crop
+        function selectQuickCrop(crop) {
+            document.getElementById('cropInput').value = crop;
+            document.querySelectorAll('.crop-chip').forEach(chip => {
+                chip.classList.remove('active');
+                if (chip.textContent.includes(crop)) {
+                    chip.classList.add('active');
+                }
+            });
+        }
+
+        // Main Analysis Function
+        async function analyzeCrop() {
+            const cropName = document.getElementById('cropInput').value.trim();
+            const location = document.getElementById('locationInput').value.trim();
+
+            if (!cropName) {
+                showNotification('Please enter a crop or plant name', 'error');
+                return;
+            }
+
+            // Show loading states
+            showLoading(true);
+            document.getElementById('inputSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsContent').classList.add('hidden');
+
+            // Update button state
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '🔄 Analyzing...';
+            analyzeBtn.disabled = true;
+
+            try {
+                // Set API status to AI mode
+                updateApiStatus('ai');
+                
+                // Get crop data
+                const cropData = getCropData(cropName);
+                
+                if (!cropData) {
+                    throw new Error(`Crop "${cropName}" not found`);
+                }
+                
+                // Get weather data if location provided
+                let weatherData = null;
+                if (location) {
+                    weatherData = await getLiveWeather(location);
+                }
+
+                // Store current analysis
+                currentAnalysis = {
+                    crop: cropData,
+                    location: location,
+                    weather: weatherData,
+                    timestamp: new Date()
+                };
+
+                // Update UI with the data
+                updateResultsUI(cropData, weatherData, location);
+
+                showNotification(`Analysis complete for ${cropData.name}`, 'success');
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showNotification('Analysis completed with basic data', 'warning');
+                
+                // Fallback with generated data
+                const fallbackData = generateCropData(cropName);
+                let weatherData = null;
+                if (location) {
+                    weatherData = await getLiveWeather(location);
+                }
+                
+                updateResultsUI(fallbackData, weatherData, location);
+            } finally {
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        // Get crop data from available sources
+        function getCropData(cropName) {
+            const normalizedName = cropName.charAt(0).toUpperCase() + cropName.slice(1).toLowerCase();
+            
+            // Check database first
+            if (cropDatabase[normalizedName]) {
+                return cropDatabase[normalizedName];
+            }
+            
+            // Check case-insensitive match
+            const dbKey = Object.keys(cropDatabase).find(key => 
+                key.toLowerCase() === normalizedName.toLowerCase()
+            );
+            
+            if (dbKey) {
+                return cropDatabase[dbKey];
+            }
+            
+            return null;
+        }
+
+        // Generate crop data for unknown crops
+        function generateCropData(cropName) {
+            const category = classifyCrop(cropName);
+            const imageUrl = getCropImage(cropName, category);
+            
+            return {
+                name: cropName,
+                description: `General cultivation information for ${cropName}. It's a ${category.toLowerCase()} that can be grown with proper care and management.`,
+                idealTemp: getTemperatureRange(category),
+                waterReq: getWaterRequirements(category),
+                sunExposure: getSunExposure(category),
+                season: getSeason(category),
+                bestSoil: getSoilType(category),
+                phRange: getPHRange(category),
+                growthPeriod: getGrowthPeriod(category),
+                yield: getYield(category),
+                marketValue: getMarketValue(category),
+                difficulty: getDifficulty(category),
+                image: imageUrl,
+                imageSource: "Pixabay",
+                organicRequirements: ['Organic Compost', 'Crop Rotation', 'Natural Pest Control'],
+                growthStages: [
+                    { step: 1, name: "Soil Preparation", desc: "Prepare soil with organic matter and ensure proper drainage" },
+                    { step: 2, name: "Planting", desc: "Sow seeds or transplant seedlings at recommended depth" },
+                    { step: 3, name: "Growth", desc: "Regular watering, weeding, and monitoring" },
+                    { step: 4, name: "Harvest", desc: "Harvest at maturity for best quality" }
+                ],
+                pests: ['Common garden pests'],
+                diseases: ['Fungal diseases in humid conditions']
+            };
+        }
+
+        // Get crop image from reliable source
+        function getCropImage(cropName, category) {
+            // Predefined images for common crops
+            const imageMap = {
+                'apple': 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=800&auto=format&fit=crop',
+                'banana': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w-800&auto=format&fit=crop',
+                'orange': 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800&auto=format&fit=crop',
+                'grape': 'https://images.unsplash.com/photo-1515772765-21d6a6d176e5?w=800&auto=format&fit=crop',
+                'carrot': 'https://images.unsplash.com/photo-1598170845058-78131a90f4bf?w=800&auto=format&fit=crop',
+                'onion': 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?w=800&auto=format&fit=crop',
+                'garlic': 'https://images.unsplash.com/photo-1605883705077-fb4c5e609e6f?w=800&auto=format&fit=crop'
+            };
+            
+            const nameLower = cropName.toLowerCase();
+            
+            // Check if we have a predefined image
+            for (const [key, url] of Object.entries(imageMap)) {
+                if (nameLower.includes(key)) {
+                    return url;
+                }
+            }
+            
+            // Use category-based fallback images
+            const categoryImages = {
+                'Fruit': 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&auto=format&fit=crop',
+                'Vegetable': 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=800&auto=format&fit=crop',
+                'Grain': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&auto=format&fit=crop',
+                'Herb': 'https://images.unsplash.com/photo-1596040033221-a1f4f8a9c65a?w=800&auto=format&fit=crop',
+                'Flower': 'https://images.unsplash.com/photo-1471899236350-ea6c3e2e9833?w=800&auto=format&fit=crop'
+            };
+            
+            return categoryImages[category] || 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop';
+        }
+
+        // Handle image loading errors
+        function handleImageError(img) {
+            const cropName = document.getElementById('cropNameDisplay')?.textContent || 'plant';
+            img.src = `https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop&q=80`;
+            document.getElementById('imageSource').textContent = 'Default Image';
+        }
+
+        // Helper functions for data generation
+        function classifyCrop(cropName) {
+            const nameLower = cropName.toLowerCase();
+            
+            for (const [category, plants] of Object.entries(PLANT_CATEGORIES)) {
+                if (plants.some(plant => nameLower.includes(plant))) {
+                    return category;
+                }
+            }
+            
+            // Default classification
+            if (nameLower.includes('berry')) return 'Fruit';
+            if (nameLower.includes('flower')) return 'Flower';
+            if (nameLower.includes('nut')) return 'Nut';
+            return 'Vegetable';
+        }
+
+        function getTemperatureRange(category) {
+            const ranges = {
+                'Vegetable': '18-28°C',
+                'Fruit': '20-30°C',
+                'Grain': '15-25°C',
+                'Herb': '15-25°C',
+                'Flower': '18-26°C'
+            };
+            return ranges[category] || '18-25°C';
+        }
+
+        function getWaterRequirements(category) {
+            const requirements = {
+                'Vegetable': 'Medium (Regular irrigation)',
+                'Fruit': 'Medium-High (Regular watering)',
+                'Grain': 'Medium (500-800mm)',
+                'Herb': 'Low-Medium',
+                'Flower': 'Medium'
+            };
+            return requirements[category] || 'Medium';
+        }
+
+        function getSunExposure(category) {
+            return 'Full sun (6-8 hours daily)';
+        }
+
+        function getSeason(category) {
+            const seasons = {
+                'Vegetable': 'Spring-Summer',
+                'Fruit': 'Warm season',
+                'Grain': 'Depends on variety',
+                'Herb': 'Year-round',
+                'Flower': 'Spring-Fall'
+            };
+            return seasons[category] || 'Spring-Summer';
+        }
+
+        function getSoilType(category) {
+            return 'Well-drained loamy soil';
+        }
+
+        function getPHRange(category) {
+            return '6.0-7.0';
+        }
+
+        function getGrowthPeriod(category) {
+            const periods = {
+                'Vegetable': '60-120 days',
+                'Fruit': '90-180 days',
+                'Grain': '90-150 days',
+                'Herb': '60-90 days',
+                'Flower': '60-120 days'
+            };
+            return periods[category] || '90-120 days';
+        }
+
+        function getYield(category) {
+            const yields = {
+                'Vegetable': 'Moderate to high',
+                'Fruit': 'High with proper care',
+                'Grain': '3-5 tons/acre',
+                'Herb': '2-4 tons/acre',
+                'Flower': 'Varies by variety'
+            };
+            return yields[category] || 'Moderate yield';
+        }
+
+        function getMarketValue(category) {
+            const values = {
+                'Vegetable': 'Good market demand',
+                'Fruit': 'High market value',
+                'Grain': 'Stable market',
+                'Herb': 'Premium value for organic',
+                'Flower': 'Ornamental value'
+            };
+            return values[category] || 'Good market potential';
+        }
+
+        function getDifficulty(category) {
+            const difficulties = {
+                'Vegetable': 'Easy to Medium',
+                'Fruit': 'Medium',
+                'Grain': 'Easy',
+                'Herb': 'Easy',
+                'Flower': 'Easy to Medium'
+            };
+            return difficulties[category] || 'Medium';
+        }
+
+        // Get Live Weather Data
+        async function getLiveWeather(city) {
+            const OPENWEATHER_API_KEY = '3db48de1818c721602c143e5bda3f165';
+            try {
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric`
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Weather data not available for ${city}`);
+                }
+
+                const data = await response.json();
+                
+                return {
+                    temp: Math.round(data.main.temp),
+                    humidity: data.main.humidity,
+                    description: data.weather[0].description,
+                    main: data.weather[0].main,
+                    rain: data.rain ? data.rain["1h"] || 0 : 0,
+                    city: data.name
+                };
+            } catch (error) {
+                console.warn('Weather API error:', error);
+                return null;
+            }
+        }
+
+        // Update Results UI
+        function updateResultsUI(cropData, weatherData, location) {
+            // Hide loading, show results
+            showLoading(false);
+            
+            // Update data source indicator
+            const isInDatabase = cropDatabase[cropData.name];
+            document.getElementById('dataSourceBadge').textContent = isInDatabase ? '📊 Database' : '🤖 AI Generated';
+            
+            // Update basic info
+            document.getElementById('resultTitle').textContent = `${cropData.name.toUpperCase()} ANALYSIS`;
+            document.getElementById('resultSubtitle').textContent = location ? 
+                `AI-powered analysis for ${location}` : 'AI-powered crop analysis';
+            
+            document.getElementById('cropNameDisplay').textContent = cropData.name;
+            
+            // Update scientific name if available
+            const sciNameEl = document.getElementById('cropScientificName');
+            if (cropData.scientificName) {
+                sciNameEl.textContent = cropData.scientificName;
+                sciNameEl.style.display = 'block';
+            } else {
+                sciNameEl.style.display = 'none';
+            }
+            
+            document.getElementById('cropDescription').textContent = cropData.description;
+            
+            // Set crop image
+            const cropImage = document.getElementById('cropImage');
+            cropImage.src = cropData.image || 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&auto=format&fit=crop';
+            document.getElementById('imageSource').textContent = cropData.imageSource || 'Image Source';
+            
+            // Update basic stats
+            document.getElementById('seasonDisplay').textContent = cropData.season || '--';
+            document.getElementById('growthPeriodDisplay').textContent = cropData.growthPeriod || '--';
+            document.getElementById('difficultyDisplay').textContent = cropData.difficulty || '--';
+            
+            // Update weather data
+            if (weatherData) {
+                document.getElementById('currentTemp').textContent = `${weatherData.temp}°C`;
+                document.getElementById('humidity').textContent = `${weatherData.humidity}%`;
+                document.getElementById('rainfall').textContent = `${weatherData.rain || 0} mm`;
+                document.getElementById('weatherCondition').textContent = 
+                    `${weatherIcons[weatherData.main] || '🌤️'} ${weatherData.description}`;
+            } else if (location) {
+                document.getElementById('currentTemp').textContent = 'Weather data unavailable';
+                document.getElementById('humidity').textContent = '--';
+                document.getElementById('rainfall').textContent = '--';
+                document.getElementById('weatherCondition').textContent = 'Check location';
+            } else {
+                document.getElementById('currentTemp').textContent = 'Add location for weather';
+                document.getElementById('humidity').textContent = '--';
+                document.getElementById('rainfall').textContent = '--';
+                document.getElementById('weatherCondition').textContent = 'No location';
+            }
+            
+            // Update ideal conditions
+            document.getElementById('idealTemp').textContent = cropData.idealTemp || '--';
+            document.getElementById('waterReq').textContent = cropData.waterReq || '--';
+            document.getElementById('sunExposure').textContent = cropData.sunExposure || 'Full sun';
+            
+            // Update soil requirements
+            document.getElementById('bestSoil').textContent = cropData.bestSoil || '--';
+            document.getElementById('phRange').textContent = cropData.phRange || '--';
+            document.getElementById('soilFertility').textContent = cropData.soilFertility || 'Medium';
+            
+            // Update yield prediction
+            document.getElementById('expectedYield').textContent = cropData.yield || '--';
+            document.getElementById('harvestTime').textContent = cropData.harvestTime || cropData.growthPeriod || '--';
+            document.getElementById('marketValue').textContent = cropData.marketValue || 'Good market potential';
+            
+            // Update organic requirements
+            const organicContainer = document.getElementById('organicRequirements');
+            organicContainer.innerHTML = '';
+            if (cropData.organicRequirements && cropData.organicRequirements.length > 0) {
+                cropData.organicRequirements.forEach(req => {
+                    const tag = document.createElement('span');
+                    tag.className = 'requirement-tag';
+                    tag.textContent = `🌿 ${req}`;
+                    organicContainer.appendChild(tag);
+                });
+            } else {
+                organicContainer.innerHTML = '<span class="requirement-tag">🌿 Organic Compost</span>' +
+                                           '<span class="requirement-tag">🌿 Crop Rotation</span>' +
+                                           '<span class="requirement-tag">🌿 Natural Pest Control</span>';
+            }
+            
+            // Update growth timeline
+            const timelineContainer = document.getElementById('growthTimeline');
+            timelineContainer.innerHTML = '';
+            if (cropData.growthStages && cropData.growthStages.length > 0) {
+                cropData.growthStages.forEach(stage => {
+                    const item = document.createElement('div');
+                    item.className = 'timeline-item';
+                    item.innerHTML = `
+                        <div class="timeline-step">${stage.step}</div>
+                        <div class="timeline-content">
+                            <h4>${stage.name}</h4>
+                            <p>${stage.desc}</p>
+                        </div>
+                    `;
+                    timelineContainer.appendChild(item);
+                });
+            } else {
+                timelineContainer.innerHTML = `
+                    <div class="timeline-item">
+                        <div class="timeline-step">1</div>
+                        <div class="timeline-content">
+                            <h4>Preparation</h4>
+                            <p>Prepare soil with organic matter</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-step">2</div>
+                        <div class="timeline-content">
+                            <h4>Planting</h4>
+                            <p>Sow seeds or transplant seedlings</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-step">3</div>
+                        <div class="timeline-content">
+                            <h4>Growth</h4>
+                            <p>Regular care and maintenance</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-step">4</div>
+                        <div class="timeline-content">
+                            <h4>Harvest</h4>
+                            <p>Harvest at maturity</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Update pest and disease info
+            const pestContainer = document.getElementById('pestInfo');
+            pestContainer.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <div class="label">Common Pests</div>
+                    <div style="color: var(--text-white);">${Array.isArray(cropData.pests) ? cropData.pests.join(', ') : (cropData.pests || 'Common garden pests')}</div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <div class="label">Common Diseases</div>
+                    <div style="color: var(--text-white);">${Array.isArray(cropData.diseases) ? cropData.diseases.join(', ') : (cropData.diseases || 'Monitor for fungal diseases')}</div>
+                </div>
+                <div style="padding: 1rem; background: rgba(74, 222, 128, 0.1); border-radius: 10px;">
+                    <div class="label">Organic Control Methods</div>
+                    <div style="color: var(--text-white); font-size: 0.9rem;">
+                        • Neem oil spray every 15 days<br>
+                        • Companion planting with marigold<br>
+                        • Regular monitoring and manual removal<br>
+                        • Maintain plant health with organic fertilizers
+                    </div>
+                </div>
+            `;
+            
+            // Update alternative crops
+            const altContainer = document.getElementById('alternativeCrops');
+            altContainer.innerHTML = '';
+            
+            // Get similar crops based on category
+            const category = classifyCrop(cropData.name);
+            const similarCrops = getSimilarCrops(category, cropData.name);
+            
+            similarCrops.forEach(crop => {
+                const tag = document.createElement('span');
+                tag.className = 'requirement-tag';
+                tag.textContent = `🌱 ${crop}`;
+                tag.style.cursor = 'pointer';
+                tag.onclick = () => {
+                    document.getElementById('cropInput').value = crop;
+                    analyzeCrop();
+                };
+                altContainer.appendChild(tag);
+            });
+            
+            // Add more suggestions if needed
+            if (similarCrops.length < 3) {
+                ['Tomato', 'Basil', 'Marigold'].forEach(crop => {
+                    if (!similarCrops.includes(crop)) {
+                        const tag = document.createElement('span');
+                        tag.className = 'requirement-tag';
+                        tag.textContent = `🌱 ${crop}`;
+                        tag.style.cursor = 'pointer';
+                        tag.onclick = () => {
+                            document.getElementById('cropInput').value = crop;
+                            analyzeCrop();
+                        };
+                        altContainer.appendChild(tag);
+                    }
+                });
+            }
+            
+            // Generate alerts and recommendations
+            generateAlerts(cropData, weatherData, location);
+        }
+
+        // Get similar crops
+        function getSimilarCrops(category, exclude) {
+            const crops = PLANT_CATEGORIES[category] || [];
+            return crops
+                .filter(crop => crop.toLowerCase() !== exclude.toLowerCase())
+                .slice(0, 3)
+                .map(crop => crop.charAt(0).toUpperCase() + crop.slice(1));
+        }
+
+        // Generate Alerts and Recommendations
+        function generateAlerts(cropData, weatherData, location) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            alertsContainer.innerHTML = '';
+            
+            const alerts = [];
+            
+            // Current season alert
+            const currentMonth = new Date().getMonth();
+            const currentSeason = getCurrentSeason(currentMonth);
+            
+            alerts.push({
+                type: 'success',
+                title: '📅 Planting Season',
+                message: `Best planting time for ${cropData.name}: ${cropData.season}. Current season is ${currentSeason}.`
+            });
+            
+            // Soil preparation
+            alerts.push({
+                type: 'success',
+                title: '🌱 Soil Preparation',
+                message: `Prepare soil with organic compost. Target pH: ${cropData.phRange}. Use ${cropData.bestSoil} for best results.`
+            });
+            
+            // Water management
+            alerts.push({
+                type: 'success',
+                title: '💧 Water Management',
+                message: `Water requirements: ${cropData.waterReq}. Adjust irrigation based on weather conditions.`
+            });
+            
+            // Weather-based alerts
+            if (weatherData) {
+                const temp = weatherData.temp;
+                const idealTemp = cropData.idealTemp;
+                
+                // Extract temperature range
+                const tempMatch = idealTemp.match(/(\d+)-(\d+)/);
+                if (tempMatch) {
+                    const minTemp = parseInt(tempMatch[1]);
+                    const maxTemp = parseInt(tempMatch[2]);
+                    
+                    if (temp < minTemp - 5) {
+                        alerts.push({
+                            type: 'warning',
+                            title: '❄️ Temperature Alert',
+                            message: `Current temperature (${temp}°C) is below ideal range for ${cropData.name}. Consider waiting for warmer weather or using protective covers.`
+                        });
+                    } else if (temp > maxTemp + 5) {
+                        alerts.push({
+                            type: 'warning',
+                            title: '🔥 Temperature Alert',
+                            message: `Current temperature (${temp}°C) is above ideal range for ${cropData.name}. Provide shade and increase watering frequency.`
+                        });
+                    }
+                }
+                
+                // Rainfall alert
+                if (weatherData.rain > 20) {
+                    alerts.push({
+                        type: 'warning',
+                        title: '🌧️ Heavy Rainfall',
+                        message: 'Heavy rainfall detected. Ensure proper drainage to prevent waterlogging.'
+                    });
+                }
+            }
+            
+            // Organic practices
+            if (cropData.organicRequirements && cropData.organicRequirements.length > 0) {
+                alerts.push({
+                    type: 'success',
+                    title: '♻️ Organic Practices',
+                    message: `Recommended: ${cropData.organicRequirements.slice(0, 3).join(', ')}`
+                });
+            }
+            
+            // Display alerts
+            alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${alert.type}`;
+                alertDiv.innerHTML = `
+                    <div class="alert-icon">${alert.type === 'warning' ? '⚠️' : '✅'}</div>
+                    <div class="alert-content">
+                        <h4>${alert.title}</h4>
+                        <p>${alert.message}</p>
+                    </div>
+                `;
+                alertsContainer.appendChild(alertDiv);
+            });
+        }
+
+        // Get current season
+        function getCurrentSeason(month) {
+            if (month >= 2 && month <= 4) return 'Spring';
+            if (month >= 5 && month <= 7) return 'Summer';
+            if (month >= 8 && month <= 10) return 'Fall';
+            return 'Winter';
+        }
+
+        // Reset Analysis
+        function resetAnalysis() {
+            document.getElementById('inputSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('cropInput').value = '';
+            document.getElementById('locationInput').value = '';
+            
+            // Reset quick crop chips
+            document.querySelectorAll('.crop-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            
+            showNotification('Analysis reset. You can now analyze another crop.', 'success');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Print Analysis
+        function printAnalysis() {
+            const printContent = document.getElementById('resultsContent').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${document.getElementById('cropNameDisplay').textContent} Analysis Report</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 20px; 
+                            color: #333;
+                        }
+                        .report-header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #4ade80;
+                            padding-bottom: 20px;
+                        }
+                        .report-header h1 {
+                            color: #0a5c2a;
+                            margin-bottom: 10px;
+                        }
+                        .report-section {
+                            margin-bottom: 20px;
+                            page-break-inside: avoid;
+                        }
+                        .report-card {
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            padding: 15px;
+                            margin-bottom: 15px;
+                        }
+                        .crop-image {
+                            max-width: 300px;
+                            margin: 0 auto 20px;
+                        }
+                        .crop-image img {
+                            width: 100%;
+                            border-radius: 8px;
+                        }
+                        @media print {
+                            .no-print { display: none; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-header">
+                        <h1>🌿 EcoHarvest Crop Analysis Report</h1>
+                        <h2>${document.getElementById('cropNameDisplay').textContent}</h2>
+                        <p>Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+                    </div>
+                    ${printContent}
+                    <div class="no-print" style="margin-top: 30px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #4ade80; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            🖨️ Print Report
+                        </button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                            ❌ Close
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+        }
+
+        // Share Analysis
+        function shareAnalysis() {
+            if (navigator.share) {
+                const cropName = document.getElementById('cropNameDisplay').textContent;
+                navigator.share({
+                    title: `${cropName} Analysis - EcoHarvest`,
+                    text: `Check out this comprehensive crop analysis for ${cropName} on EcoHarvest!`,
+                    url: window.location.href
+                });
+            } else {
+                showNotification('Share functionality not available in your browser', 'warning');
+            }
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            if (show) {
+                document.getElementById('loadingSection').classList.remove('hidden');
+                document.getElementById('resultsContent').classList.add('hidden');
+            } else {
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('resultsContent').classList.remove('hidden');
+            }
+        }
+
+        // Show Notification
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            let icon = 'ℹ️';
+            if (type === 'error') icon = '❌';
+            if (type === 'success') icon = '✅';
+            if (type === 'warning') icon = '⚠️';
+            
+            notification.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 0.3rem;">
+                    ${icon} ${type.charAt(0).toUpperCase() + type.slice(1)}
+                </div>
+                <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8);">${message}</div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.transition = 'all 0.3s ease';
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(100%)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize API status
+            updateApiStatus('ai');
+            
+            // Setup autocomplete
+            const cropInput = document.getElementById('cropInput');
+            const suggestions = document.getElementById('cropSuggestions');
+            
+            cropInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                suggestions.innerHTML = '';
+                
+                if (query.length < 2) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+                
+                // Get all possible crops
+                const allCrops = new Set();
+                
+                // Add from database
+                Object.keys(cropDatabase).forEach(crop => {
+                    if (crop.toLowerCase().includes(query)) {
+                        allCrops.add(crop);
+                    }
+                });
+                
+                // Add from categories
+                for (const [category, crops] of Object.entries(PLANT_CATEGORIES)) {
+                    crops.forEach(crop => {
+                        const cropCapitalized = crop.charAt(0).toUpperCase() + crop.slice(1);
+                        if (crop.includes(query) || cropCapitalized.includes(query)) {
+                            allCrops.add(cropCapitalized);
+                        }
+                    });
+                }
+                
+                // Display suggestions
+                const cropsArray = Array.from(allCrops);
+                if (cropsArray.length > 0) {
+                    cropsArray.slice(0, 10).forEach(crop => {
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        
+                        // Check if it's in database
+                        const isInDb = cropDatabase[crop];
+                        
+                        item.innerHTML = `
+                            <span class="suggestion-name">${crop}</span>
+                            ${isInDb ? '<span class="suggestion-type">Detailed</span>' : 
+                              '<span class="suggestion-type">Basic</span>'}
+                        `;
+                        
+                        item.addEventListener('click', () => {
+                            cropInput.value = crop;
+                            suggestions.style.display = 'none';
+                        });
+                        suggestions.appendChild(item);
+                    });
+                    suggestions.style.display = 'block';
+                } else {
+                    suggestions.style.display = 'none';
+                }
+            });
+            
+            // Close suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.input-field')) {
+                    suggestions.style.display = 'none';
+                }
+            });
+            
+            // Enable enter key
+            cropInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') analyzeCrop();
+            });
+            
+            document.getElementById('locationInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') analyzeCrop();
+            });
+            
+            // GSAP animation for heading
+            gsap.to("#mainHeading", {
+                opacity: 1,
+                y: 0,
+                duration: 1.2,
+                ease: "power4.out",
+                delay: 0.2
+            });
+            
+            // Custom cursor
+            const cursor = document.querySelector('.custom-cursor');
+            const cursorDot = document.querySelector('.cursor-dot');
+            
+            if (cursor && cursorDot) {
+                let mouseX = 0;
+                let mouseY = 0;
+                
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    
+                    cursorDot.style.left = `${mouseX - 4}px`;
+                    cursorDot.style.top = `${mouseY - 4}px`;
+                    
+                    gsap.to(cursor, {
+                        x: mouseX - 15,
+                        y: mouseY - 15,
+                        duration: 0.3,
+                        ease: "power2.out"
+                    });
+                });
+                
+                // Interactive elements
+                const interactiveElements = ['button', 'a', 'input', '.crop-chip', '.requirement-tag'];
+                
+                document.addEventListener('mouseover', (e) => {
+                    if (interactiveElements.some(selector => 
+                        e.target.matches(selector) || e.target.closest(selector)
+                    )) {
+                        cursor.classList.add('active');
+                    }
+                });
+                
+                document.addEventListener('mouseout', (e) => {
+                    if (interactiveElements.some(selector => 
+                        e.target.matches(selector) || e.target.closest(selector)
+                    )) {
+                        cursor.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

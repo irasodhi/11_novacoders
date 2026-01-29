@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert Ecosystem | EcoHarvest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Boda:wght@700&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            cursor: none;
+            background: linear-gradient(rgba(10, 40, 25, 0.45), rgba(10, 40, 25, 0.5)), 
+                        url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80');
+            background-attachment: fixed;
+            background-size: cover;
+            color: #ffffff;
+        }
+
+        .glass-nav { background: rgba(10, 40, 25, 0.7); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(34, 197, 94, 0.3); }
+        .challenge-font { font-family: 'Boda', serif; letter-spacing: -0.02em; }
+
+        .cursor-stalker { width: 35px; height: 35px; border: 2px solid #4ade80; border-radius: 50%; position: fixed; pointer-events: none; z-index: 200000; }
+        .cursor-dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; position: fixed; pointer-events: none; z-index: 200000; }
+
+        .farmer-card { 
+            background: rgba(255, 255, 255, 0.12); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            opacity: 1 !important; 
+        }
+        
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 150000; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 2.5rem; padding: 2.5rem; color: #1f2937; max-height: 90vh; overflow-y: auto; pointer-events: auto; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Cursor -->
+    <div class="cursor-stalker"></div>
+    <div class="cursor-dot"></div>
+
+    <!-- Modals -->
+    <div id="booking-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="m-name" class="text-3xl font-bold text-green-800 mb-1 italic">Expert Name</h2>
+            <p id="m-state" class="text-xs font-bold text-green-600 uppercase tracking-widest mb-6">State</p>
+            <form class="space-y-4" onsubmit="handleBooking(event)">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-bold uppercase text-gray-400">Date</label><input type="date" id="b-date" required class="w-full bg-gray-100 rounded-xl p-3 text-sm border-none"></div>
+                    <div><label class="text-[10px] font-bold uppercase text-gray-400">Time</label><input type="time" id="b-time" required class="w-full bg-gray-100 rounded-xl p-3 text-sm border-none"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-gray-400">Guidance Mode</label>
+                    <select id="m-price" onchange="updatePrice()" class="w-full bg-gray-100 rounded-xl p-3 text-sm border-none">
+                        <option value="500">Video Call (₹500)</option>
+                        <option value="1500">Physical Visit (₹1500)</option>
+                    </select>
+                </div>
+                <div class="bg-green-50 p-4 rounded-2xl flex justify-between items-center"><span class="text-green-800 font-bold">Protocol Fee:</span><span id="final-p" class="text-2xl font-black text-green-600">₹500</span></div>
+                <button type="submit" class="gsap-interact w-full bg-green-600 text-white py-4 rounded-2xl font-bold shadow-xl">Confirm Appointment</button>
+                <button type="button" onclick="closeModal('booking-modal')" class="gsap-interact w-full text-gray-400 text-xs py-2 mt-2">Go Back</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="appointment-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-3xl font-bold text-green-800 mb-6 uppercase tracking-tighter">Your Sessions</h2>
+            <div id="appointment-list" class="space-y-4">
+                <p class="text-gray-400 italic text-center py-10">No active appointments found.</p>
+            </div>
+            <button onclick="closeModal('appointment-modal')" class="gsap-interact w-full mt-6 bg-green-900 text-white py-4 rounded-2xl font-bold shadow-xl">Close Dashboard</button>
+        </div>
+    </div>
+
+    <div id="cancel-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-red-800 mb-4">Cancel Appointment</h2>
+            <p class="text-sm text-gray-500 mb-4">Please provide a reason for cancelling this guidance session.</p>
+            <textarea id="cancel-reason" class="w-full bg-gray-100 rounded-xl p-4 text-sm mb-4 outline-none h-24" placeholder="Reason for cancellation..."></textarea>
+            <div class="flex gap-2">
+                <button onclick="confirmCancellation()" class="gsap-interact flex-1 bg-red-600 text-white py-3 rounded-xl font-bold">Confirm</button>
+                <button onclick="closeModal('cancel-modal')" class="gsap-interact flex-1 bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FLASK NAVBAR ===== -->
+    <nav class="glass-nav fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <!-- LOGO -->
+            <a href="{{ url_for('home') }}" class="nav-logo text-2xl font-bold text-green-400 flex items-center gap-2">
+                <span class="p-2 bg-green-600 rounded-lg text-white">🌿</span>
+                EcoHarvest
+            </a>
+
+            <!-- NAV LINKS -->
+            <div class="hidden md:flex gap-8 font-semibold text-gray-200 uppercase text-[10px] tracking-widest items-center">
+
+                <a href="{{ url_for('ai_chat') }}#ai-chatbot" class="nav-item hover:text-green-400">AI Chatbot</a>
+                <a href="{{ url_for('crop') }}#crop-guidance" class="nav-item hover:text-green-400">Crop Guidance</a>
+                <a href="{{ url_for('products') }}" class="nav-item hover:text-green-400">Seed Marketplace</a>
+                <a href="{{ url_for('farmers') }}#farmers" class="nav-item hover:text-green-400">Farmer Details</a>
+                <a href="{{ url_for('about') }}#about" class="nav-item hover:text-green-400">About Us</a>
+
+                <!-- AUTH LOGIC -->
+                {% if session.get('user_id') %}
+                    <span class="text-green-400 lowercase">{{ session.get('user') }}</span>
+                    <a href="{{ url_for('logout') }}" class="nav-item hover:text-red-400">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-item hover:text-green-400">Login</a>
+                    <a href="{{ url_for('register') }}" class="nav-item hover:text-green-400">Register</a>
+                {% endif %}
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero & Search Section -->
+    <section class="pt-48 pb-10 px-6 text-center">
+        <h1 class="hero-title text-5xl md:text-8xl font-extrabold text-white mb-6 leading-tight">Farmer <br><span class="text-green-400 italic">Expert Details</span></h1>
+        <div class="max-w-3xl mx-auto bg-white/10 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/20 mb-10 text-left">
+            <p class="text-gray-300 text-sm leading-relaxed">
+                Connect with expert mentors to adopt sustainable farming practices. Search by state to find mentors offering guidance on reducing dependency on chemical fertilizers.
+            </p>
+        </div>
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 items-center">
+            <div class="flex-1 w-full p-2 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 flex gap-2">
+                <select id="s-input" class="flex-1 bg-transparent px-6 py-4 text-white focus:outline-none appearance-none cursor-pointer">
+                    <option value="" class="bg-green-900">Select State...</option>
+                    <option value="haryana" class="bg-green-900">Haryana</option>
+                    <option value="punjab" class="bg-green-900">Punjab</option>
+                    <option value="rajasthan" class="bg-green-900">Rajasthan</option>
+                </select>
+                <button onclick="scrollState()" class="gsap-interact bg-green-600 px-10 py-4 rounded-xl font-bold hover:bg-green-500">Search Experts</button>
+            </div>
+            <button onclick="openModal('appointment-modal')" class="gsap-interact bg-white text-green-900 px-8 py-5 rounded-2xl font-bold uppercase text-[10px] shadow-xl hover:scale-105 transition-transform">
+                My Appointments 📋
+            </button>
+        </div>
+    </section>
+
+    <!-- Experts Grid -->
+    <section id="expert-grid" class="py-12 px-6 pb-40">
+        <div class="max-w-7xl mx-auto space-y-32" id="main-container">
+            <div id="haryana" class="state-sec hidden border-t border-white/10 pt-10">
+                <h2 class="text-4xl font-bold challenge-font text-green-400 uppercase mb-8">Haryana Specialists</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="haryana-list"></div>
+            </div>
+            <div id="punjab" class="state-sec hidden border-t border-white/10 pt-10">
+                <h2 class="text-4xl font-bold challenge-font text-green-400 uppercase mb-8">Punjab Specialists</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="punjab-list"></div>
+            </div>
+            <div id="rajasthan" class="state-sec hidden border-t border-white/10 pt-10">
+                <h2 class="text-4xl font-bold challenge-font text-green-400 uppercase mb-8">Rajasthan Specialists</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="rajasthan-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JS Logic (Cursor, Modal, Appointments) -->
+    <script>
+        gsap.registerPlugin(ScrollToPlugin);
+
+        const farmerData = [
+            {name: "Jaideep Dhayia", state: "haryana", bio: "Expert in organic terrace farming and greenhouse management.", loc: "Jind"},
+            {name: "Jay Chaudhari", state: "haryana", bio: "Soil health specialist focused on reducing chemical seed dependency.", loc: "Rohtak"},
+            {name: "Harish Sharma", state: "haryana", bio: "Organic paddy and sustainable wheat cultivation consultant.", loc: "Hisar"},
+            {name: "Preeti Singh", state: "haryana", bio: "Home gardening and urban plantation advisor.", loc: "Karnal"},
+            {name: "Amit Kumar", state: "haryana", bio: "Specialist in pesticide-free farming strategy.", loc: "Panipat"},
+            {name: "Sukhbir Singh", state: "punjab", bio: "Connecting farmers with verified organic seed networks.", loc: "Amritsar"},
+            {name: "Jaspreet Kaur", state: "punjab", bio: "Step-by-step guidance for sustainable organic vegetables.", loc: "Ludhiana"},
+            {name: "Balbir Mani", state: "punjab", bio: "Large scale sustainable wheat farming strategist.", loc: "Patiala"},
+            {name: "Daljit Sidhu", state: "punjab", bio: "Expert in climate-aware crop recommendations.", loc: "Bhatinda"},
+            {name: "Gurpreet Brar", state: "punjab", bio: "Water health and organic fertilization mentor.", loc: "Moga"},
+            {name: "Rajveer Shekhawat", state: "rajasthan", bio: "Specialist in organic arid land farming.", loc: "Jaipur"},
+            {name: "Sunita Kanwar", state: "rajasthan", bio: "Guidance on water conservation and sustainable plantation.", loc: "Jodhpur"},
+            {name: "Vikram Rathore", state: "rajasthan", bio: "Expert in organic spice cultivation and seed networks.", loc: "Udaipur"},
+            {name: "Gopal Paliwal", state: "rajasthan", bio: "Traditional desert farming and soil health mentor.", loc: "Bikaner"},
+            {name: "Anjali Vyas", state: "rajasthan", bio: "Expert in nutrient management for organic desert soils.", loc: "Ajmer"}
+        ];
+
+        farmerData.forEach(f => {
+            const list = document.getElementById(`${f.state}-list`);
+            list.innerHTML += `
+                <div class="farmer-card p-8 rounded-[2.5rem] flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-green-400 mb-1">${f.name}</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">${f.loc}</p>
+                        <p class="text-gray-300 text-sm mb-6 italic">"${f.bio}"</p>
+                    </div>
+                    <button onclick="openBooking('${f.name}', '${f.state.toUpperCase()}')" class="gsap-interact w-full bg-white text-green-900 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-green-400 transition-all">Book Guidance</button>
+                </div>
+            `;
+        });
+
+        // Cursor Logic
+        const stalker = document.querySelector('.cursor-stalker');
+        const dot = document.querySelector('.cursor-dot');
+        
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(stalker, { x: e.clientX - 17, y: e.clientY - 17, duration: 0.3 });
+            gsap.to(dot, { x: e.clientX - 3, y: e.clientY - 3, duration: 0.1 });
+        });
+
+        function bindCursorHovers() {
+            document.querySelectorAll('a, button, select, textarea, input, .gsap-interact').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    gsap.to(stalker, { scale: 2.2, backgroundColor: 'rgba(74, 222, 128, 0.2)', borderColor: 'transparent', duration: 0.3 });
+                    gsap.to(dot, { scale: 1.5, background: '#4ade80', duration: 0.3 });
+                });
+                el.addEventListener('mouseleave', () => {
+                    gsap.to(stalker, { scale: 1, backgroundColor: 'transparent', borderColor: '#4ade80', duration: 0.3 });
+                    gsap.to(dot, { scale: 1, background: '#4ade80', duration: 0.3 });
+                });
+            });
+        }
+        bindCursorHovers();
+
+        let appointments = [];
+        let currentCancelId = null;
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; bindCursorHovers(); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function scrollState() {
+            const state = document.getElementById('s-input').value;
+            if(!state) return;
+            document.querySelectorAll('.state-sec').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById(state);
+            target.classList.remove('hidden');
+            gsap.to(window, { duration: 1.2, scrollTo: { y: `#${state}`, offsetY: 100 }, ease: "power2.inOut" });
+        }
+
+        function openBooking(name, state) {
+            document.getElementById('m-name').innerText = name;
+            document.getElementById('m-state').innerText = state;
+            document.getElementById('final-p').innerText = '₹500';
+            document.getElementById('m-price').value = 500;
+            openModal('booking-modal');
+        }
+
+        function updatePrice() {
+            const val = document.getElementById('m-price').value;
+            document.getElementById('final-p').innerText = `₹${val}`;
+        }
+
+function handleBooking(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('m-name').innerText;
+    const state = document.getElementById('m-state').innerText;
+    const date = document.getElementById('b-date').value;
+    const time = document.getElementById('b-time').value;
+    const price = document.getElementById('m-price').value;
+
+    appointments.push({ name, state, date, time, price });
+
+    renderAppointments(); // ✅ THIS WAS MISSING
+
+    alert('Appointment booked successfully!');
+    closeModal('booking-modal');
+}
+
+
+        function confirmCancellation() {
+            if(currentCancelId !== null) {
+                appointments.splice(currentCancelId, 1);
+                currentCancelId = null;
+                closeModal('cancel-modal');
+                renderAppointments();
+            }
+        }
+
+        function renderAppointments() {
+            const list = document.getElementById('appointment-list');
+            list.innerHTML = '';
+            if(appointments.length === 0) {
+                list.innerHTML = '<p class="text-gray-400 italic text-center py-10">No active appointments found.</p>';
+                return;
+            }
+            appointments.forEach((app, idx) => {
+                list.innerHTML += `
+                    <div class="bg-green-50 p-4 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">${app.name}</p>
+                            <p class="text-xs text-gray-600">${app.date} at ${app.time} | ₹${app.price}</p>
+                        </div>
+                        <button onclick="currentCancelId=${idx}; openModal('cancel-modal')" class="bg-red-600 px-4 py-2 text-white rounded-xl text-xs font-bold">Cancel</button>
+                    </div>
+                `;
+            });
+        }
+
+    </script>
+</body>
+</html>

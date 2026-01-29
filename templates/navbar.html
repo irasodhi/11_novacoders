@@ -1,0 +1,31 @@
+<nav class="glass-nav fixed w-full z-50 top-0 left-0">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+        <!-- LOGO -->
+        <a href="{{ url_for('home') }}" class="nav-logo text-2xl font-bold text-green-400 flex items-center gap-2">
+            <span class="p-2 bg-green-600 rounded-lg text-white">🌿</span>
+            EcoHarvest
+        </a>
+
+        <!-- NAV LINKS -->
+        <div class="hidden md:flex gap-8 font-semibold text-gray-200 uppercase text-[10px] tracking-widest items-center">
+
+            <a href="{{ url_for('ai_chat') }}#ai-chatbot" class="nav-item hover:text-green-400">AI Chatbot</a>
+            <a href="{{ url_for('crop') }}#crop-guidance" class="nav-item hover:text-green-400">Crop Guidance</a>
+            <a href="{{ url_for('products') }}" class="nav-item hover:text-green-400">Seed Marketplace</a>
+            <a href="{{ url_for('farmers') }}#farmers" class="nav-item hover:text-green-400">Farmer Details</a>
+            <a href="{{ url_for('about') }}#about" class="nav-item hover:text-green-400">About Us</a>
+
+            <!-- AUTH LOGIC -->
+          {% if session.get('user_id') %}
+    <span class="text-green-400 lowercase">{{ session.get('user') }}</span>
+    <a href="{{ url_for('logout') }}" class="nav-item hover:text-red-400">Logout</a>
+{% else %}
+    <a href="{{ url_for('login') }}" class="nav-item hover:text-green-400">Login</a>
+    <a href="{{ url_for('register') }}" class="nav-item hover:text-green-400">Register</a>
+{% endif %}
+
+
+        </div>
+    </div>
+</nav>
