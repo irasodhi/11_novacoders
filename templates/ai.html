@@ -14,7 +14,7 @@
                         url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1920&q=80');
             background-attachment: fixed;
             background-size: cover;
-            color: #ffffff;
+            color: #110e0e;
             height: 100vh; 
             display: flex; 
             justify-content: center; 
@@ -198,7 +198,8 @@
         function addMessage(text, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            messageDiv.textContent = text;
+            messageDiv.innerHTML = text.replace(/\n/g, "<br>");
+
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }

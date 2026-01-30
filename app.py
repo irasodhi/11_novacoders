@@ -494,14 +494,14 @@ from planet1 import UltimatePlantCare
 # ---------------- APP SETUP ----------------
 app = Flask(__name__)
 app.secret_key = "secret123"
-
+bot = UltimatePlantCare()
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ---------------- AI BOT SETUP ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-plant_app = UltimatePlantCare()
+# plant_app = UltimatePlantCare()
 
 # ---------------- DATABASE CONNECTION ----------------
 def get_db():
@@ -518,71 +518,46 @@ def ai_chat():
     return render_template("ai.html")
 
 # ---------------- AI CHAT API ----------------
+from werkzeug.utils import secure_filename
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
-    try:
-        message = request.form.get("message", "").strip()
-        image = request.files.get("image")
+    message = request.form.get("message", "").strip()
+    image = request.files.get("image")
 
-        logger.info(f"📩 '{message}' | Image: {bool(image)}")
+    plant_info = None
 
-        plant_info = None
+    # 🟢 IMAGE HANDLING (THIS WAS MISSING / WRONG)
+    if image and image.filename:
+        filename = secure_filename(image.filename)
+        image_path = os.path.join(UPLOAD_FOLDER, filename)
+        image.save(image_path)   # ✅ MUST SAVE
 
-        # 1️⃣ Image detection
-        if image and image.filename:
-            image_path = f"temp_{random.randint(1000,9999)}_{image.filename}"
-            image.save(image_path)
-            plant_info = plant_app.smart_identify_plant(image_path)
-            if os.path.exists(image_path):
-                os.remove(image_path)
+        plant_info = bot.smart_identify_plant(image_path)
 
-        # 2️⃣ Text detection
-        if not plant_info and message:
-            plant_info = plant_app.get_plant_care(message)
-
-        # 3️⃣ Weather
-        city = None
-        if message:
-            for word in message.lower().split():
-                if word in plant_app.INDIAN_LOCATIONS:
-                    city = word
-                    break
-        weather = plant_app.get_weather(city)
-
-        # 4️⃣ Analysis
-        analysis = {}
-        if plant_info:
-            analysis = plant_app.analyze(plant_info, weather)
-
-        reply = build_chat_response(plant_info, analysis, weather, bool(image), message)
-        return jsonify({"reply": reply})
-
-    except Exception as e:
-        logger.error(e)
-        return jsonify({"reply": "😵 Something went wrong. Try again!"}), 500
-
-# ---------------- CHAT RESPONSE BUILDER ----------------
-def build_chat_response(plant_info, analysis, weather, is_image, message):
-    msg = message.lower().strip()
-
-    if msg in ["hi", "hello", "hey", "start", "begin"] and not is_image:
-        return """👋 Hey! I'm PlantBot AI 🌱
-📸 Upload a plant image OR
-🌾 Type a plant name like: wheat, tomato, basil
-🌍 Add city: wheat delhi"""
+    # 🟢 TEXT HANDLING
+    if not plant_info and message:
+        plant_info = bot.get_plant_care(message)
 
     if not plant_info:
-        return "🔍 Sorry! I couldn’t identify that plant. Try another or upload an image 🌿"
+        return jsonify({
+            "reply": "❌ Sorry, I couldn’t recognize this plant.\nTry a clearer image or type the plant name 🌱"
+        })
 
-    response = f"{'📸' if is_image else '🌿'} {plant_info.get('common','Plant')}\n"
-    response += f"🔬 {plant_info.get('name','N/A')}\n\n"
-    response += f"🌡️ {analysis.get('temp',0):.1f}°C | 🎯 {analysis.get('status','N/A')}\n"
-    response += f"💧 Water: {analysis.get('water','N/A')}\n"
-    response += f"☀️ Light: {analysis.get('light','N/A')}\n"
-    response += f"💡 Tip: {analysis.get('tip','Keep going!')}\n\n"
-    response += f"🌤️ {weather['city']}: {weather['temp']:.1f}°C"
+    weather = bot.get_weather()
+    analysis = bot.analyze(plant_info, weather)
 
-    return response
+    reply = f"""
+🌿 **Plant Identified:** {analysis['plant']}
+🌡️ **Temperature:** {analysis['temp']}°C (Ideal: {analysis['range']})
+📊 **Status:** {analysis['status']}
+💧 **Water:** {analysis['water']}
+☀️ **Light:** {analysis['light']}
+💡 **Tip:** {analysis['tip']}
+"""
+
+    return jsonify({"reply": reply})
 
 
 # ---------------- PRODUCTS / MARKETPLACE ----------------
